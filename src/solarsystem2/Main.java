@@ -142,9 +142,9 @@ class Planet
 {
     private String name;    // Planet's name
     private Color color;    // Planet's color
-    private double pDiameter;   // Planet's diameter
     private double x;   // Planet's center distance from planet's orbit center measured on x axis
     private double y;   // Planet's center distance from planet's orbit center measured on y axis
+    private double pDiameter;   // Planet's diameter
     private double oRadius; // Planet's orbit radius
     private double pSpeed;  // Planet's speed
     private double distFromGC_XCo; // Planet's orbit center distance from galaxy center measured on x axis
@@ -183,6 +183,25 @@ class Planet
     }
     
     /**
+     * Returns planet's color 
+     * @return color - planet's color
+     */
+    public Color getPlanetColor()
+    {
+        return color;
+    }
+    
+    /**
+     * Sets planet's color to supplied value
+     * @param color - planet's color
+     */
+    public void getPlanetColor(Color color)
+    {
+        this.color = color;
+    }
+    
+    
+    /**
      * Returns planet's center x coordinate
      * @return x - planet's center x coordinate
      */
@@ -219,44 +238,97 @@ class Planet
     }
     
     /**
-     * Return planet's speed which equals number of times planet encircle its orbit center 
+     * Returns planet's speed which equals number of times planet encircle its orbit center 
      * during the time that earth needs to encircle sun   
-     * @return 
+     * @return pSpeed 
      */
     public double getPlanetSpeed()
     {
         return pSpeed;
     }
     
+     /**
+     * Sets planet's speed which equals number of times planet encircle its orbit center 
+     * during the time that earth needs to encircle sun   
+     * @param pSpeed 
+     */
     public void setPlanetSpeed(double pSpeed)
     {
         this.pSpeed = pSpeed;
     }
     
+    /**
+     * Returns planet's diameter
+     * @return pDiameter - planet's diameter
+     */
+    public double getPlanetDiameter()
+    {
+        return pDiameter;
+    }
+    
+    /**
+     * Sets planet's diameter
+     * @param pDiameter - planet's diameter
+     */
+    public void setPlanetDiameter(double pDiameter)
+    {
+        this.pDiameter = pDiameter;
+    }
+    
+    /**
+     * Returns planet's orbit radius
+     * @return oRadius - planet orbit radius
+     */
     public int getOrbitRadius()
     {
         return (int)oRadius;
     }
+
+    /**
+     * Sets planet's orbit radius to supplied value
+     * @param oRadius - planet orbit radius
+     */
+    public void setOrbitRadius(double oRadius)
+    {
+        this.oRadius = oRadius;
+    }
     
-    public float getRadius()
+    /**
+     * Returns planet's radius
+     * @return pDiameter / 2 - planet radius
+     */
+    public float getPlanetRadius()
     {
         return (float)pDiameter/2;
     }
     
-    public Color getColor()
+    /**
+     * Sets planet's radius to supplied value
+     * @param pRadius - planet radius
+     */
+    public void setPlanetRadius(double pRadius)
     {
-        return color;
+        pDiameter = 2*pRadius;
     }
     
+    /**
+     * Changes planet position by supplied number of radians
+     * @param rad - number by which plant should by moved on the orbit
+     */
+ 
     public void move(double rad)
     {
         x =  (int)((MainFrame.getGC_XCoordinate()+distFromGC_XCo) + oRadius * Math.cos(rad));
         y =  (int)((MainFrame.getGC_YCoordinate()+distFromGC_YCo) + oRadius * Math.sin(rad));
     }
     
+    /**
+     * Returns ellipse shape in defined by planets variables position and size 
+     * @return Ellipse2D - ellipse shape
+     */
     public Ellipse2D getPlanet()
     {
-        return new Ellipse2D.Double(x-pDiameter/2, y-pDiameter/2, pDiameter, pDiameter);
+        return new Ellipse2D.Double(x-getPlanetRadius(), y-getPlanetRadius(), pDiameter, pDiameter);
     }
     
     /**
@@ -338,10 +410,10 @@ class SolarSystem extends JPanel
         Graphics2D g2 = (Graphics2D)g;
         for (Planet planet: solarPlanets)
         {
-            g2.setColor(planet.getColor());
+            g2.setColor(planet.getPlanetColor());
             g2.fill(planet.getPlanet());
-            g2.drawString(planet.getPlanetName(), planet.getPlanetXCo()+planet.getRadius()+8, planet.getPlanetYCo()-planet.getRadius()-20);
-            g2.drawString("x: "+(int)planet.getPlanetXCo()+" y: "+(int)planet.getPlanetYCo(), planet.getPlanetXCo()+planet.getRadius()+8, planet.getPlanetYCo()-planet.getRadius()-5);
+            g2.drawString(planet.getPlanetName(), planet.getPlanetXCo()+planet.getPlanetRadius()+8, planet.getPlanetYCo()-planet.getPlanetRadius()-20);
+            g2.drawString("x: "+(int)planet.getPlanetXCo()+" y: "+(int)planet.getPlanetYCo(), planet.getPlanetXCo()+planet.getPlanetRadius()+8, planet.getPlanetYCo()-planet.getPlanetRadius()-5);
           //g2.drawOval((int)Main.xSUN-planet.getOrbitRadius(), (int)Main.ySUN-planet.getOrbitRadius(),2 * planet.getOrbitRadius(),2*planet.getOrbitRadius());
         }
     }
