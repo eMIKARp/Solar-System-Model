@@ -38,8 +38,8 @@ class MainFrame extends JFrame
     
     private double scSize = 1000;
     private double scDist = 5000000;
-    private double eD = 12756 / scSize ; // The diameter of the earth which equals 12 756 km
-    private double aU = 149597871/scDist; // The astronomical unit which equals dinstans between earth and sun (149 597 871 km)
+    private double eD = 12756 / scSize ; // The diameter of the earth (12 756 km)
+    private double aU = 149597871 / scDist; // The astronomical unit which equals dinstans between earth and sun (149 597 871 km)
     
     private Planet slonce = new Planet("Słońce", new Color(255,69,0), 0, 0, eD,0,0,0);
     private Planet merkury = new Planet("Merkury", new Color(238,232,170), 0.3871*aU,0, 0.3825*eD, 1.01/0.2408,0,0);
@@ -52,12 +52,16 @@ class MainFrame extends JFrame
     private Planet neptun = new Planet("Neptun", new Color(0,0,205), 30.0690*aU,0, 3.8827*eD, 1.01/164.8799,0,0); 
     
     
-    private SolarSystem solarSystem = new SolarSystem();
-    private JPanel lowerPanel = new JPanel();
-        
+    private static SolarSystem solarSystem = new SolarSystem();
+    private static ControlPanel controlPanel = new ControlPanel();
+    
+    private int referalXCo = 0;
+    private int referalYCo = 0;
+    
     
     public MainFrame()
     {
+        
         solarSystem.addPlanet(slonce);
         solarSystem.addPlanet(merkury);
         solarSystem.addPlanet(wenus);
@@ -72,29 +76,52 @@ class MainFrame extends JFrame
 
         this.setLayout(new BorderLayout());
         this.add(solarSystem, BorderLayout.CENTER);
-        lowerPanel.setPreferredSize(new Dimension((int)SWIDTH, 150));
-        lowerPanel.setBorder(BorderFactory.createTitledBorder("Control panel"));
-        lowerPanel.setLayout(new BoxLayout(lowerPanel, BoxLayout.LINE_AXIS));
-        JPanel scaleBox = new JPanel();
-        JPanel planetsBox = new JPanel();
-        scaleBox.setBorder(BorderFactory.createTitledBorder("Change scale & speed"));
-        planetsBox.setBorder(BorderFactory.createTitledBorder("Change planet details"));
-        lowerPanel.add(scaleBox);
-        lowerPanel.add(planetsBox);
-        this.add(lowerPanel, BorderLayout.SOUTH);
-        
+        this.add(controlPanel, BorderLayout.SOUTH);
         
         this.addKeyListener(new KeyAdapter() 
+        {
+             public void keyPressed(KeyEvent e) 
+             {
+                 if (e.getKeyCode() == KeyEvent.VK_UP) setGC_YCoordinate(-10);
+                 else if (e.getKeyCode() == KeyEvent.VK_DOWN) setGC_YCoordinate(10);
+                 else if (e.getKeyCode() == KeyEvent.VK_LEFT) setGC_XCoordinate(-10);
+                 else if (e.getKeyCode() == KeyEvent.VK_RIGHT) setGC_XCoordinate(10);
+             }
+        });
+        
+        this.addMouseMotionListener(new MouseAdapter() 
+        {
+            public void mouseDragged(MouseEvent e)
             {
-                 public void keyPressed(KeyEvent e) 
-                 {
-                     if (e.getKeyCode() == KeyEvent.VK_UP) setGC_YCoordinate(-10);
-                     else if (e.getKeyCode() == KeyEvent.VK_DOWN) setGC_YCoordinate(10);
-                     else if (e.getKeyCode() == KeyEvent.VK_LEFT) setGC_XCoordinate(-10);
-                     else if (e.getKeyCode() == KeyEvent.VK_RIGHT) setGC_XCoordinate(10);
-                 }
-            });
+                
+                
+                if (e.getXOnScreen()<= referalXCo) setGC_XCoordinate(-5);
+                if (e.getXOnScreen()> referalXCo) setGC_XCoordinate(5);
+                if (e.getYOnScreen()<= referalYCo) setGC_YCoordinate(-5);
+                if (e.getYOnScreen()> referalYCo) setGC_YCoordinate(5);
+            }
+            
+        });
+        
+        this.addMouseListener(new MouseAdapter() 
+        {
+            public void mousePressed(MouseEvent e) 
+            {
+                MainFrame.solarSystem.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
+                referalXCo = e.getX();
+                referalYCo = e.getY();
+                System.out.println(referalXCo + " " + referalYCo);
+            }
+            
+            public void mouseReleased(MouseEvent e) 
+            {
+                MainFrame.solarSystem.setCursor(Cursor.getDefaultCursor());
+            }
+            
+        });
+        
     }
+    
     
         
     /**
@@ -117,8 +144,7 @@ class MainFrame extends JFrame
        galaxyCenter_XCoordinate+=xChange;
     }
 
-    /**
-    * Returns y coordinate of galaxy center
+    /*
     * @return galaxyCenter_YCoordinate - y coordinate 
     */
 
@@ -135,6 +161,22 @@ class MainFrame extends JFrame
     public static void setGC_YCoordinate(int yChange)
     {
        galaxyCenter_YCoordinate+=yChange;
+    }
+}
+
+class ControlPanel extends JPanel
+{
+    public ControlPanel()
+    {
+        this.setPreferredSize(new Dimension((int)MainFrame.SWIDTH, 150));
+        this.setBorder(BorderFactory.createTitledBorder("Control panel"));
+        this.setLayout(new BoxLayout(this, BoxLayout.LINE_AXIS));
+        JPanel scaleBox = new JPanel();
+        JPanel planetsBox = new JPanel();
+        scaleBox.setBorder(BorderFactory.createTitledBorder("General settings"));
+        planetsBox.setBorder(BorderFactory.createTitledBorder("Planet specific"));
+        this.add(scaleBox);
+        this.add(planetsBox);
     }
 }
 
@@ -345,7 +387,6 @@ class Planet
     * Changes planet's orbit center distance from galaxy center measured on x axis
     * @param xChange - value by which distance will change on x axis
     */
-
     public void setDistFromGC_XCo(int xChange)
     {
        distFromGC_XCo+=xChange;
@@ -355,7 +396,6 @@ class Planet
     * Returns planet's orbit center distance from galaxy center measured on y axis
     * @return distFromGC_YCo - distance on y axis 
     */
-
     public double getDistFromGC_YCo()
     {
        return distFromGC_YCo;
@@ -365,7 +405,6 @@ class Planet
     * Changes planet's orbit center distance from galaxy center measured on y axis
     * @param yChange - value by which distance will change on y axis
     */
-
     public void getDistFromGC_YCo(int yChange)
     {
        distFromGC_YCo+=yChange;
@@ -414,7 +453,7 @@ class SolarSystem extends JPanel
             g2.fill(planet.getPlanet());
             g2.drawString(planet.getPlanetName(), planet.getPlanetXCo()+planet.getPlanetRadius()+8, planet.getPlanetYCo()-planet.getPlanetRadius()-20);
             g2.drawString("x: "+(int)planet.getPlanetXCo()+" y: "+(int)planet.getPlanetYCo(), planet.getPlanetXCo()+planet.getPlanetRadius()+8, planet.getPlanetYCo()-planet.getPlanetRadius()-5);
-          //g2.drawOval((int)Main.xSUN-planet.getOrbitRadius(), (int)Main.ySUN-planet.getOrbitRadius(),2 * planet.getOrbitRadius(),2*planet.getOrbitRadius());
+            //g2.drawOval((int)Main.xSUN-planet.getOrbitRadius(), (int)Main.ySUN-planet.getOrbitRadius(),2 * planet.getOrbitRadius(),2*planet.getOrbitRadius());
         }
     }
 }
