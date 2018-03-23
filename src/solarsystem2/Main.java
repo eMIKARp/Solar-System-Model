@@ -220,7 +220,8 @@ class MyMenuBar extends JMenuBar
             ((JMenu)this.getComponent(0)).add(new JMenuItem("Add satelite"));
             ((JMenu)this.getComponent(0)).add(new JMenuItem("Remove planet"));
             ((JMenu)this.getComponent(0)).add(new JMenuItem("Remove satelite"));
-        this.add(new JMenu("Options"));
+        
+            this.add(new JMenu("Options"));
             ((JMenu)this.getComponent(1)).setPreferredSize(new Dimension(60, 25));
             ((JMenu)this.getComponent(1)).add(new JMenuItem("Change size scale"));
             ((JMenu)this.getComponent(1)).add(new JMenuItem("Change distance scale"));
@@ -228,6 +229,7 @@ class MyMenuBar extends JMenuBar
             ((JMenu)this.getComponent(1)).add(new JMenuItem("Show planet details"));
             ((JMenu)this.getComponent(1)).add(new JMenuItem("Show orbits"));
             ((JMenu)this.getComponent(1)).add(new JMenuItem("Show night sky"));
+            
         this.add(new JMenu("Help"));
             ((JMenu)this.getComponent(2)).setPreferredSize(new Dimension(60, 25));
             ((JMenu)this.getComponent(2)).add(new JMenuItem("Q&A"));
@@ -445,7 +447,7 @@ class Planet
      * @param rad - number by which plant should by moved on the orbit
      */
  
-    public void move(double rad)
+    public synchronized void move(double rad)
     {
         x =  (int)((MainFrame.getGC_XCoordinate()+distFromGC_XCo) + oRadius * Math.cos(rad));
         y =  (int)((MainFrame.getGC_YCoordinate()+distFromGC_YCo) + oRadius * Math.sin(rad));
@@ -499,11 +501,33 @@ class Planet
     
 }
 
+class NightSky
+{
+    ArrayList<Ellipse2D> stars = new ArrayList<>();
+    
+    public NightSky(int numberOfStars)
+    {
+        for (int i = 0; i < numberOfStars;i++)
+        {
+            double starSize = Math.random()*5;
+            stars.add(new Ellipse2D.Double(Math.random()*MainFrame.SWIDTH, Math.random()*MainFrame.SHEIGHT, starSize, starSize));
+        }
+    }
+    
+    public ArrayList<Ellipse2D> getNightSky()
+    {
+        return stars;
+    }
+            
+}
+
+
 class SolarSystem extends JPanel
 {
     private ArrayList<Planet> solarPlanets = new ArrayList<>();
     private ArrayList<Thread> threadArray = new ArrayList<>();
     private ThreadGroup threadGroup = new ThreadGroup("All Planets");
+    private NightSky nightSky = new NightSky(200);
     private int i = 0;
     
     public void addPlanet(Planet newPlanet)
@@ -518,13 +542,13 @@ class SolarSystem extends JPanel
                 {
                     if (i == 0)
                     {    
-                    rad += newPlanet.getPlanetSpeed()*2*Math.PI/360;
-                    if (rad >= 2*Math.PI) rad = 0;
-                    newPlanet.move(rad);
+                        rad += newPlanet.getPlanetSpeed()*2*Math.PI/360;
+                        if (rad >= 2*Math.PI) rad = 0;
+                        newPlanet.move(rad);
                     }
                     else
                     {
-                    newPlanet.move(rad);    
+                        newPlanet.move(rad);    
                     }    
                     this.repaint();
                     Thread.sleep(5);
@@ -544,14 +568,26 @@ class SolarSystem extends JPanel
     {
         super.paintComponent(g);
         Graphics2D g2 = (Graphics2D)g;
+        for (Ellipse2D stars: nightSky.getNightSky())
+        {
+            g2.setColor(Color.WHITE);
+            g2.fill(stars);
+        }
         for (Planet planet: solarPlanets)
         {
             g2.setColor(planet.getPlanetColor());
             g2.fill(planet.getPlanet());
             g2.drawString(planet.getPlanetName(), planet.getPlanetXCo()+planet.getPlanetRadius()+8, planet.getPlanetYCo()-planet.getPlanetRadius()-20);
             g2.drawString("x: "+(int)planet.getPlanetXCo()+" y: "+(int)planet.getPlanetYCo(), planet.getPlanetXCo()+planet.getPlanetRadius()+8, planet.getPlanetYCo()-planet.getPlanetRadius()-5);
-            //g2.drawOval((int)Main.xSUN-planet.getOrbitRadius(), (int)Main.ySUN-planet.getOrbitRadius(),2 * planet.getOrbitRadius(),2*planet.getOrbitRadius());
+            // g2.drawOval((int)MainFrame.getGC_XCoordinate()+MainFrame.get-planet.getOrbitRadius(), (int)Main.ySUN-planet.getOrbitRadius(),2 * planet.getOrbitRadius(),2*planet.getOrbitRadius());
         }
+        
+            
+    }
+    
+    public NightSky getNightSky()
+    {
+        return nightSky;
     }
     
     public void freezePlanets()
