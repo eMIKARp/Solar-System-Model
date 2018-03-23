@@ -4,7 +4,12 @@ import java.awt.*;
 import java.awt.event.*;
 import java.awt.geom.*;
 import java.util.*;
+import java.util.logging.Level;
+import java.util.logging.Logger;
+import javafx.scene.control.SelectionMode;
 import javax.swing.*;
+import javax.swing.event.MenuKeyListener;
+import javax.swing.event.PopupMenuListener;
 
 /**
  * Program that displays a solar system model
@@ -38,6 +43,7 @@ class MainFrame extends JFrame
     
     private double scSize = 1000;
     private double scDist = 5000000;
+    private double scFactor = 1;
     private double eD = 12756 / scSize ; // The diameter of the earth (12 756 km)
     private double aU = 149597871 / scDist; // The astronomical unit which equals dinstans between earth and sun (149 597 871 km)
     
@@ -51,9 +57,10 @@ class MainFrame extends JFrame
     private Planet uran = new Planet("Uran", new Color(65,105,225), 19.1913*aU,0, 4.0074*eD, 1.01/84.0711,0,0);
     private Planet neptun = new Planet("Neptun", new Color(0,0,205), 30.0690*aU,0, 3.8827*eD, 1.01/164.8799,0,0); 
     
-    
+    private JMenuBar upperMenuBar = new MyMenuBar();
+    private JMenuBar lowerMenuBar = new AdditionalMenuBar();
     private static SolarSystem solarSystem = new SolarSystem();
-    private static ControlPanel controlPanel = new ControlPanel();
+    private static MyPopupMenu myPopupMenu = new MyPopupMenu();
     
     private int referalXCo = 0;
     private int referalYCo = 0;
@@ -73,11 +80,16 @@ class MainFrame extends JFrame
         solarSystem.addPlanet(neptun);
         
         solarSystem.setBackground(Color.BLACK);
-
-        this.setLayout(new BorderLayout());
-        this.add(solarSystem, BorderLayout.CENTER);
-        this.add(controlPanel, BorderLayout.SOUTH);
         
+        this.setLayout(new BorderLayout());
+        this.add(upperMenuBar, BorderLayout.NORTH);
+        this.add(solarSystem, BorderLayout.CENTER);
+        this.add(lowerMenuBar, BorderLayout.SOUTH);
+        
+        /**
+         * This listener, arrow is pressed, changes galaxy center
+         * to simulate change of view perspective 
+         */
         this.addKeyListener(new KeyAdapter() 
         {
              public void keyPressed(KeyEvent e) 
@@ -89,19 +101,39 @@ class MainFrame extends JFrame
              }
         });
         
+        /**
+        * This listener is responsible for showing a pop up menu  
+        * when mouse right button is clicked on the screen  
+        */
+        this.addMouseListener(new MouseAdapter() 
+        {
+            public void mouseClicked(MouseEvent e) 
+            {
+             if (e.getButton() == 3) myPopupMenu.show(solarSystem, e.getX(),e.getY());
+            }
+        });
+        
+        /**
+         * This listener, when mouse is dragged, changes galaxy center
+         * to simulate change of view perspective 
+         */
+        
         this.addMouseMotionListener(new MouseAdapter() 
         {
             public void mouseDragged(MouseEvent e)
             {
-                
-                
                 if (e.getXOnScreen()<= referalXCo) setGC_XCoordinate(-5);
-                if (e.getXOnScreen()> referalXCo) setGC_XCoordinate(5);
+                else if (e.getXOnScreen()> referalXCo) setGC_XCoordinate(5);
                 if (e.getYOnScreen()<= referalYCo) setGC_YCoordinate(-5);
-                if (e.getYOnScreen()> referalYCo) setGC_YCoordinate(5);
+                else if (e.getYOnScreen()> referalYCo) setGC_YCoordinate(5);
             }
             
         });
+        
+        /**
+         * This listener, when mouse is pressed, changes value of referalXCo and referalYCo 
+         * which are used to calculate in which direction mouse is moving
+         */
         
         this.addMouseListener(new MouseAdapter() 
         {
@@ -121,9 +153,19 @@ class MainFrame extends JFrame
         });
         
     }
+ 
+    public static void freezePlanets()
+    {
+        System.out.println("Free");
+        solarSystem.freezePlanets();
+    }
     
+    public static void unfreezePlanets()
+    {
+        System.out.println("Free");
+        solarSystem.unfreezePlanets();
+    }
     
-        
     /**
     * Returns x coordinate of galaxy center
     * @return galaxyCenter_XCoordinate - x coordinate 
@@ -164,19 +206,64 @@ class MainFrame extends JFrame
     }
 }
 
-class ControlPanel extends JPanel
+class MyMenuBar extends JMenuBar
 {
-    public ControlPanel()
+    public MyMenuBar()
     {
-        this.setPreferredSize(new Dimension((int)MainFrame.SWIDTH, 150));
-        this.setBorder(BorderFactory.createTitledBorder("Control panel"));
+        this.add(new JMenu("Tools"));
+            ((JMenu)this.getComponent(0)).setPreferredSize(new Dimension(50, 25));
+            ((JMenu)this.getComponent(0)).add(new JMenuItem("Freeze universe"));
+            ((JMenu)this.getComponent(0)).add(new JMenuItem("Unfreeze universe"));
+            ((JMenu)this.getComponent(0)).add(new JMenuItem("Zoom in"));
+            ((JMenu)this.getComponent(0)).add(new JMenuItem("Zoom out"));
+            ((JMenu)this.getComponent(0)).add(new JMenuItem("Add planet"));
+            ((JMenu)this.getComponent(0)).add(new JMenuItem("Add satelite"));
+            ((JMenu)this.getComponent(0)).add(new JMenuItem("Remove planet"));
+            ((JMenu)this.getComponent(0)).add(new JMenuItem("Remove satelite"));
+        this.add(new JMenu("Options"));
+            ((JMenu)this.getComponent(1)).setPreferredSize(new Dimension(60, 25));
+            ((JMenu)this.getComponent(1)).add(new JMenuItem("Change size scale"));
+            ((JMenu)this.getComponent(1)).add(new JMenuItem("Change distance scale"));
+            ((JMenu)this.getComponent(1)).add(new JMenuItem("Modify planet speed"));
+            ((JMenu)this.getComponent(1)).add(new JMenuItem("Show planet details"));
+            ((JMenu)this.getComponent(1)).add(new JMenuItem("Show orbits"));
+            ((JMenu)this.getComponent(1)).add(new JMenuItem("Show night sky"));
+        this.add(new JMenu("Help"));
+            ((JMenu)this.getComponent(2)).setPreferredSize(new Dimension(60, 25));
+            ((JMenu)this.getComponent(2)).add(new JMenuItem("Q&A"));
+            ((JMenu)this.getComponent(2)).add(new JMenuItem("About"));
+    }
+}
+
+class AdditionalMenuBar extends JMenuBar
+{
+    public AdditionalMenuBar()
+    {
+        this.setPreferredSize(new Dimension((int)Toolkit.getDefaultToolkit().getScreenSize().getWidth(), 30));
         this.setLayout(new BoxLayout(this, BoxLayout.LINE_AXIS));
-        JPanel scaleBox = new JPanel();
-        JPanel planetsBox = new JPanel();
-        scaleBox.setBorder(BorderFactory.createTitledBorder("General settings"));
-        planetsBox.setBorder(BorderFactory.createTitledBorder("Planet specific"));
-        this.add(scaleBox);
-        this.add(planetsBox);
+        this.add(Box.createHorizontalStrut((int)Toolkit.getDefaultToolkit().getScreenSize().getWidth()-300));
+        this.add(new JLabel("Created by Emil Karpowicz / Szczytno 2018"));
+    }
+}
+
+class MyPopupMenu extends JPopupMenu
+{
+    public MyPopupMenu()
+    {
+       this.add(new JMenuItem(new AbstractAction("Freeze") 
+       {
+           @Override
+           public void actionPerformed(ActionEvent e) {
+               MainFrame.freezePlanets();
+           }
+       }));
+       this.add(new JMenuItem(new AbstractAction("unFreeze") 
+       {
+           @Override
+           public void actionPerformed(ActionEvent e) {
+               MainFrame.unfreezePlanets();
+           }
+       }));
     }
 }
 
@@ -415,6 +502,9 @@ class Planet
 class SolarSystem extends JPanel
 {
     private ArrayList<Planet> solarPlanets = new ArrayList<>();
+    private ArrayList<Thread> threadArray = new ArrayList<>();
+    private ThreadGroup threadGroup = new ThreadGroup("All Planets");
+    private int i = 0;
     
     public void addPlanet(Planet newPlanet)
     {
@@ -426,9 +516,16 @@ class SolarSystem extends JPanel
                 double rad = 0;
                 while (!Thread.currentThread().isInterrupted())
                 {
+                    if (i == 0)
+                    {    
                     rad += newPlanet.getPlanetSpeed()*2*Math.PI/360;
                     if (rad >= 2*Math.PI) rad = 0;
                     newPlanet.move(rad);
+                    }
+                    else
+                    {
+                    newPlanet.move(rad);    
+                    }    
                     this.repaint();
                     Thread.sleep(5);
                 }
@@ -438,7 +535,7 @@ class SolarSystem extends JPanel
                 ex.getMessage();
             }
         };
-        Thread t = new Thread(r);
+        Thread t = new Thread(threadGroup,r, newPlanet.getPlanetName());
         t.start();
     }
     
@@ -455,5 +552,17 @@ class SolarSystem extends JPanel
             g2.drawString("x: "+(int)planet.getPlanetXCo()+" y: "+(int)planet.getPlanetYCo(), planet.getPlanetXCo()+planet.getPlanetRadius()+8, planet.getPlanetYCo()-planet.getPlanetRadius()-5);
             //g2.drawOval((int)Main.xSUN-planet.getOrbitRadius(), (int)Main.ySUN-planet.getOrbitRadius(),2 * planet.getOrbitRadius(),2*planet.getOrbitRadius());
         }
+    }
+    
+    public void freezePlanets()
+    {
+        i = 1;
+        System.out.println(i);
+    }
+    
+    public void unfreezePlanets()
+    {
+        i = 0;
+        System.out.println(i);
     }
 }
