@@ -11,6 +11,8 @@ import javax.swing.*;
 import javax.swing.event.MenuKeyListener;
 import javax.swing.event.PopupMenuListener;
 
+/* Test gita */
+
 /**
  * Program that displays a solar system model
  * @version 2018-03-21
